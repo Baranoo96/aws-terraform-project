@@ -63,6 +63,7 @@ This project uses a three-layer AWS architecture following best practices for se
 │   RDS Primary    │                                 │   RDS Standby    │
 │ - No Public Access │                               │ - Multi-AZ       │
 └──────────────────┘                                 └──────────────────┘
+```
 
 🚀 3. Terraform Deployment
 
