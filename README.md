@@ -66,15 +66,15 @@ This project uses a three-layer AWS architecture following best practices for se
 ```
 
 🚀 3. Terraform Deployment
-
+````
 The environment is deployed using the standard Terraform workflow:
 
 terraform init       # Download AWS provider, initialize project
 terraform validate   # Validate .tf files
 terraform plan       # Preview changes
 terraform apply      # Deploy infrastructure
-terraform destroy    # Tear down infrastructure
-
+terraform destroy    # destroy infrastructure
+````
 Terraform creates:
 
 VPC, Subnets, Route Tables
@@ -95,7 +95,7 @@ Outputs (Public IP, DNS, RDS endpoint)
 
 80 (HTTP)
 
-22 (restricted to your IP)
+22 (restricted to my IP)
 
 ✔ RDS access locked to EC2 security group
 
