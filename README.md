@@ -12,33 +12,58 @@ Strict Security Groups for controlled communication
 
 Fully automated provisioning with Terraform
 
-⭐ 1. Architecture Overview
-The environment follows a secure 3-layer structure:
+## 1. Architecture Overview
 
-🔹 Network Layer
+This project uses a three-layer AWS architecture following best practices for security, scalability, and separation of concerns.
 
-VPC with public & private subnets
-Internet Gateway for EC2 access
-Route tables for traffic flow
-Security Groups instead of ACLs (least privilege)
+### 🔹 Network Layer
+- VPC with **one public** and **two private subnets**
+- Internet Gateway enabling public access only for the EC2 instance
+- Route tables controlling network paths
+- Security Groups enforcing least-privilege communication rules
 
-🔹 Compute Layer (EC2 + WordPress)
-EC2 instance in public subnet
-Apache + PHP installed via User Data
-Security Group allows:
-HTTP (80) from anywhere
-SSH (22) only from my IP
-EC2 connects internally to RDS
+### 🔹 Compute Layer (EC2 + WordPress)
+- EC2 instance hosted in the **public subnet**
+- WordPress installed via User Data (Apache, PHP, config)
+- Security Group rules:
+  - HTTP (Port 80) open publicly
+  - SSH (Port 22) restricted to my IP
+- EC2 communicates with RDS over internal AWS networking
 
-🔹 Database Layer (RDS MySQL Multi-AZ)
+### 🔹 Database Layer (RDS MySQL Multi-AZ)
+- RDS deployed in **private subnets only**  
+- No public exposure, no direct internet access  
+- Multi-AZ enabled → automatic failover to standby instance  
+- Only the EC2 Web Security Group may access MySQL on port 3306  
 
-Runs in private subnets
+---
 
-No public access
+## 🧱 Architecture Diagram
 
-Automatic failover via Multi-AZ standby
+```txt
+                   Internet
+                               │
+                         HTTP / Port 80
+                               │
+                ┌──────────────────────────────────┐
+                │          Public Subnet           │
+                │             10.0.1.0/24          │
+                │  EC2 Instance (WordPress)        │
+                │  - Apache/PHP                    │
+                │  - Public IP                     │
+                └────────────────┬─────────────────┘
+                                 │
+                           MySQL / 3306
+                                 │
+        ┌────────────────────────┴────────────────────────┐
+        │                                                 │
+┌───────────────┐                                 ┌────────────────┐
+│ Private Subnet A │                                 │ Private Subnet B │
+│   10.0.2.0/24    │                                 │   10.0.3.0/24    │
+│   RDS Primary    │                                 │   RDS Standby    │
+│ - No Public Access │                               │ - Multi-AZ       │
+└──────────────────┘                                 └──────────────────┘
 
-Only accessible from EC2's security group on port 3306
 
 🧱 2. Architecture Diagram
 ```txt
