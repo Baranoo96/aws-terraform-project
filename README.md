@@ -41,7 +41,7 @@ Automatic failover via Multi-AZ standby
 Only accessible from EC2's security group on port 3306
 
 🧱 2. Architecture Diagram
-'''
+'''txt
                      ┌──────────────────────────┐
                      │         Internet         │
                      └──────────────┬───────────┘
