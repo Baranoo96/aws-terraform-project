@@ -57,7 +57,7 @@ This project uses a three-layer AWS architecture following best practices for se
                                  │
         ┌────────────────────────┴────────────────────────┐
         │                                                 │
-┌───────────────┐                                 ┌────────────────┐
+  ┌───────────────┐                                   ┌────────────────┐
 │ Private Subnet A │                                 │ Private Subnet B │
 │   10.0.2.0/24    │                                 │   10.0.3.0/24    │
 │   RDS Primary    │                                 │   RDS Standby    │
