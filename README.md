@@ -1,69 +1,134 @@
-# Capstone – WordPress hosting on EC2 with RDS (Multi-AZ) using Terraform
-This project deploys a WordPress environment on AWS using Terraform.
-The setup includes a public-facing EC2 instance running WordPress and a Multi-AZ RDS MySQL database hosted in private subnets.
+#Capstone Project – WordPress Hosting on AWS using Terraform
 
-🏗️ Architecture Overview
-Networking
+This project deploys a small production-style WordPress environment on AWS using Terraform as Infrastructure as Code (IaC).
 
-VPC with one public and two private subnets
+The setup includes:
 
-Internet Gateway attached for outbound traffic from the public subnet
+EC2 instance running WordPress in a public subnet
 
-Route tables configured for proper routing
+RDS MySQL database in private subnets with Multi-AZ enabled
 
-Private subnets have no direct internet access
+Strict Security Groups for controlled communication
 
-Architecture follows standard public/private separation for web and database components
+Fully automated provisioning with Terraform
 
-Compute: EC2 WordPress Server
+⭐ 1. Architecture Overview
 
-Runs Apache, PHP, and WordPress
+The environment follows a secure 3-layer structure:
 
-Installed automatically using a User Data script
+🔹 Network Layer
 
-Located in the public subnet
+VPC with public & private subnets
 
-Receives HTTP (port 80) traffic from the internet
+Internet Gateway for EC2 access
 
-Security Group:
+Route tables for traffic flow
+
+Security Groups instead of ACLs (least privilege)
+
+🔹 Compute Layer (EC2 + WordPress)
+
+EC2 instance in public subnet
+
+Apache + PHP installed via User Data
+
+Security Group allows:
 
 HTTP (80) from anywhere
 
-SSH (22) restricted to my IP
+SSH (22) only from your IP
 
-Database: RDS MySQL (Multi-AZ)
+EC2 connects internally to RDS
 
-Deployed across two Availability Zones
+🔹 Database Layer (RDS MySQL Multi-AZ)
 
-Hosted in private subnets
+Runs in private subnets
 
-Not publicly accessible
+No public access
 
-Security Group:
+Automatic failover via Multi-AZ standby
 
-Allows MySQL (3306) only from the EC2 security group
+Only accessible from EC2's security group on port 3306
 
-Multi-AZ provides standby failover capability
+🧱 2. Architecture Diagram
+                           Internet
+                               │
+                         HTTP / Port 80
+                               │
+                ┌──────────────────────────────────┐
+                │          Public Subnet           │
+                │             10.0.1.0/24          │
+                │  EC2 Instance (WordPress)        │
+                │  - Apache/PHP                    │
+                │  - Public IP                     │
+                └────────────────┬─────────────────┘
+                                 │
+                           MySQL / 3306
+                                 │
+        ┌────────────────────────┴────────────────────────┐
+        │                                                 │
+┌───────────────┐                                 ┌────────────────┐
+│ Private Subnet A │                                 │ Private Subnet B │
+│   10.0.2.0/24    │                                 │   10.0.3.0/24    │
+│   RDS Primary    │                                 │   RDS Standby    │
+│ - No Public Access │                               │ - Multi-AZ       │
+└──────────────────┘                                 └──────────────────┘
 
-🧰 Terraform Setup
-Main Resources
+🚀 3. Terraform Deployment
 
-aws_vpc, aws_subnet, aws_internet_gateway, aws_route_table
+The environment is deployed using the standard Terraform workflow:
 
-aws_security_group for web and database access control
+terraform init       # Download AWS provider, initialize project
+terraform validate   # Validate .tf files
+terraform plan       # Preview changes
+terraform apply      # Deploy infrastructure
+terraform destroy    # Tear down infrastructure
 
-aws_instance for EC2 WordPress
+Terraform creates:
 
-aws_db_instance for RDS MySQL (Multi-AZ enabled)
+VPC, Subnets, Route Tables
 
-Terraform Workflow
-terraform init        # Download AWS provider + initialize backend
-terraform validate    # Validate configuration
-terraform plan        # Preview infrastructure changes
-terraform apply       # Deploy infrastructure
-terraform destroy     # Tear down environment
+Internet Gateway
 
-Terraform Outputs
+EC2 Instance + IAM role
+
+RDS MySQL (Multi-AZ)
+
+Security Groups
+
+Outputs (Public IP, DNS, RDS endpoint)
+
+🛡️ 4. Security Overview
+✔ Private database — not reachable from the internet
+✔ EC2 exposes only minimal ports
+
+80 (HTTP)
+
+22 (restricted to your IP)
+
+✔ RDS access locked to EC2 security group
+
+No external clients can reach MySQL.
+
+✔ Principle of Least Privilege
+
+Each component only gets the permissions it needs.
+
+📊 5. Monitoring
+
+A CloudWatch alarm tracks CPU usage of the EC2 instance:
+
+Trigger: CPU > 80%
+
+Evaluation period: 5 minutes
+
+Helps identify load issues or attacks
+
+(No SNS notifications configured, as not needed for the demo.)
+
+📤 6. Terraform Outputs
+
+Terraform provides useful values after deployment:
 
 EC2 Public IP
 
@@ -71,48 +136,4 @@ EC2 Public DNS
 
 RDS Endpoint
 
-These outputs simplify connecting to the server and configuring WordPress.
-
-🔐 Security
-
-Database isolated in private subnets
-
-EC2 only exposes necessary ports (80 + restricted 22)
-
-No public access to RDS
-
-Least privilege applied through Security Groups
-
-📊 Monitoring
-
-A CloudWatch alarm monitors EC2 CPU utilization:
-
-Threshold: CPU > 80% for 5 minutes
-
-Supports basic observability and performance awareness
-
-📦 Architecture Diagram
-                     ┌──────────────────────────┐
-                     │         Internet         │
-                     └──────────────┬───────────┘
-                                    │
-                             HTTP / Port 80
-                                    │
-                    ┌───────────────▼────────────────┐
-                    │         Public Subnet           │
-                    │         10.0.1.0/24             │
-                    │   EC2 Instance (WordPress)      │
-                    │   - Apache/PHP                  │
-                    │   - Public IP                   │
-                    └───────────────┬────────────────┘
-                                    │
-                              MySQL / 3306
-                                    │
-       ┌────────────────────────────┴────────────────────────────┐
-       │                                                         │
-┌──────▼──────────────┐                               ┌──────────▼──────────────┐
-│ Private Subnet A     │                               │ Private Subnet B       │
-│      10.0.2.0/24     │                               │      10.0.3.0/24       │
-│ RDS Primary          │                               │ RDS Standby (Multi-AZ) │
-│ - No Public Access   │                               │ - Automatic Failover   │
-└──────────────────────┘                               └─────────────────────────┘
+These outputs simplify WordPress setup and verification.
