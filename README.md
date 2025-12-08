@@ -40,7 +40,7 @@ Automatic failover via Multi-AZ standby
 
 Only accessible from EC2's security group on port 3306
 
-🧱 2. Architecture Diagram
+'''🧱 2. Architecture Diagram
                            Internet
                                │
                          HTTP / Port 80
@@ -63,6 +63,8 @@ Only accessible from EC2's security group on port 3306
 │   RDS Primary    │                                 │   RDS Standby    │
 │ - No Public Access │                               │ - Multi-AZ       │
 └──────────────────┘                                 └──────────────────┘
+
+'''
 
 🚀 3. Terraform Deployment
 
